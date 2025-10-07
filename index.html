@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>熱門動畫2選1投票</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .progress {
+            color: white;
+            font-size: 1.2em;
+            margin-top: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .battle-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            align-items: stretch;
+        }
+
+        .anime-card {
+            flex: 1;
+            max-width: 400px;
+            background: linear-gradient(145deg, #f0f0f0, #ffffff);
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .anime-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .anime-card.selected {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            transform: scale(1.05);
+        }
+
+        .anime-card.selected .anime-name {
+            color: white;
+        }
+
+        .anime-image {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .anime-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .anime-image.placeholder {
+            color: white;
+            font-size: 1.2em;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .anime-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            transition: color 0.3s ease;
+        }
+
+        .vs-text {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            align-self: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .result-container {
+            text-align: center;
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .winner-card {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            border-radius: 15px;
+            padding: 40px;
+            color: white;
+            margin-top: 20px;
+        }
+
+        .winner-card .anime-image {
+            max-width: 400px;
+            margin: 0 auto 30px;
+            height: 400px;
+        }
+
+        .winner-title {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .winner-name {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .restart-btn {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .battle-container {
+                flex-direction: column;
+                padding: 20px;
+            }
+
+            .vs-text {
+                font-size: 2em;
+                margin: 10px 0;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .anime-image {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 熱門動畫 2選1 投票 🎬</h1>
+            <div class="progress" id="progress"></div>
+        </div>
+        
+        <div id="battleArea"></div>
+    </div>
+
+    <script>
+        const animeList = [
+            "航海王", "犬夜叉", "火影忍者", "名偵探柯南", "鬼滅之刃",
+            "咒術迴戰", "金牌得主", "我的英雄學院", "失憶投捕", "鏈鋸人",
+            "進擊的巨人", "神奇寶貝", "數碼寶貝", "我推的孩子", "怪獸8號",
+            "SPY x FAMILY 間諜家家酒", "膽大黨", "章魚嗶的原罪", "遊戲王",
+            "地。關於地球的運動", "七龍珠", "死神", "死亡筆記本", "葬送的芙莉蓮",
+            "JoJo的奇妙冒險", "獵人", "夏日時光", "排球少年", "灌籃高手",
+            "一拳超人", "鋼之煉金術師", "新世紀福音戰士"
+        ];
+
+        let currentRound = [];
+        let nextRound = [];
+        let currentBattle = 0;
+
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        function initGame() {
+            currentRound = shuffleArray(animeList);
+            nextRound = [];
+            currentBattle = 0;
+            showBattle();
+        }
+
+        function getImagePath(animeName) {
+            return `${animeName}.jpg`;
+        }
+
+        function showBattle() {
+            const battleArea = document.getElementById('battleArea');
+            const progress = document.getElementById('progress');
+            
+            if (currentBattle >= currentRound.length) {
+                if (nextRound.length === 1) {
+                    showWinner();
+                    return;
+                }
+                currentRound = [...nextRound];
+                nextRound = [];
+                currentBattle = 0;
+            }
+
+            const anime1 = currentRound[currentBattle];
+            const anime2 = currentRound[currentBattle + 1];
+
+            const totalBattles = Math.ceil(currentRound.length / 2);
+            const currentBattleNum = Math.floor(currentBattle / 2) + 1;
+            const roundName = currentRound.length === 32 ? '32強' :
+                            currentRound.length === 16 ? '16強' :
+                            currentRound.length === 8 ? '8強' :
+                            currentRound.length === 4 ? '準決賽' :
+                            currentRound.length === 2 ? '決賽' : '對戰';
+
+            progress.textContent = `${roundName} - 第 ${currentBattleNum} / ${totalBattles} 場`;
+
+            battleArea.innerHTML = `
+                <div class="battle-container">
+                    <div class="anime-card" onclick="selectAnime('${anime1}')">
+                        <div class="anime-image">
+                            <img src="${getImagePath(anime1)}" 
+                                 alt="${anime1}"
+                                 onerror="this.parentElement.innerHTML='<div class=placeholder>${anime1}</div>'">
+                        </div>
+                        <div class="anime-name">${anime1}</div>
+                    </div>
+                    
+                    <div class="vs-text">VS</div>
+                    
+                    <div class="anime-card" onclick="selectAnime('${anime2}')">
+                        <div class="anime-image">
+                            <img src="${getImagePath(anime2)}" 
+                                 alt="${anime2}"
+                                 onerror="this.parentElement.innerHTML='<div class=placeholder>${anime2}</div>'">
+                        </div>
+                        <div class="anime-name">${anime2}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectAnime(winner) {
+            nextRound.push(winner);
+            currentBattle += 2;
+            
+            const cards = document.querySelectorAll('.anime-card');
+            cards.forEach(card => {
+                if (card.querySelector('.anime-name').textContent === winner) {
+                    card.classList.add('selected');
+                }
+            });
+
+            setTimeout(() => {
+                showBattle();
+            }, 500);
+        }
+
+        function showWinner() {
+            const battleArea = document.getElementById('battleArea');
+            const progress = document.getElementById('progress');
+            const winner = nextRound[0];
+
+            progress.textContent = '🎉 冠軍出爐！🎉';
+
+            battleArea.innerHTML = `
+                <div class="result-container">
+                    <div class="winner-card">
+                        <div class="winner-title">🏆 最終冠軍 🏆</div>
+                        <div class="anime-image">
+                            <img src="${getImagePath(winner)}" 
+                                 alt="${winner}"
+                                 onerror="this.parentElement.innerHTML='<div class=placeholder>${winner}</div>'">
+                        </div>
+                        <div class="winner-name">${winner}</div>
+                    </div>
+                    <button class="restart-btn" onclick="initGame()">🔄 重新開始</button>
+                </div>
+            `;
+        }
+
+        initGame();
+    </script>
+</body>
+</html>
